@@ -1,0 +1,85 @@
+@startuml
+top to bottom direction
+
+skinparam nodesep 60
+skinparam ranksep 50
+skinparam shadowing false
+skinparam linetype ortho
+
+actor Motorista as M
+actor Cliente as C
+actor Gestor as G
+actor Operador as O
+
+rectangle "Cenario 2 - Execução de entrada e entregas mal sucedidas" {
+
+  usecase "Registrar comprovante de entrega" as UC_Comprovante
+  usecase "Executar Entrega" as UC_Executar
+  usecase "Registrar entrega mal sucedida" as UC_RegMal
+  usecase "Realizar Login" as UC_Login
+
+  usecase "Notificar por e-mail" as UC_Email
+  usecase "Notificar por SMS" as UC_SMS
+  usecase "Notificar cliente" as UC_Notificar
+
+  usecase "Tratar entrega mal sucedida" as UC_Tratar
+  usecase "Reagendar entrega" as UC_Reagendar
+  usecase "Devolver Carga ao centro" as UC_Devolver
+  usecase "Confirmar novo horário" as UC_Confirmar
+
+  usecase "Acompanhar entrega" as UC_Acompanhar
+  usecase "Consultar entregas mal sucedidas" as UC_Consultar
+
+  ' ===== Bloco 1 (topo): Execução da entrega =====
+  '   Comprovante
+  '   Executar ........> Login
+  '   Registrar mal sucedida
+  UC_Comprovante -[hidden]down- UC_Executar
+  UC_Executar -[hidden]down- UC_RegMal
+  UC_Executar -[hidden]right- UC_Login
+
+  ' ===== Bloco 2 (meio): Tratamento + Notificações =====
+  '   Notificar cliente <.... Tratar
+  '   Email / SMS                 Reagendar / Devolver
+  '                               Confirmar
+  UC_RegMal -[hidden]down- UC_Tratar
+  UC_Login -[hidden]down- UC_Tratar
+  UC_Notificar -[hidden]right- UC_Reagendar
+  UC_Notificar -[hidden]down- UC_Email
+  UC_Email -[hidden]right- UC_SMS
+  UC_Tratar -[hidden]down- UC_Reagendar
+  UC_Reagendar -[hidden]right- UC_Devolver
+  UC_Reagendar -[hidden]down- UC_Confirmar
+
+  ' ===== Bloco 3 (base): Acompanhamento e consulta =====
+  UC_Confirmar -[hidden]down- UC_Acompanhar
+  UC_Email -[hidden]down- UC_Acompanhar
+  UC_Devolver -[hidden]down- UC_Consultar
+
+  ' ===== Relacionamentos =====
+  UC_Executar .up.> UC_Comprovante : <<include>>
+  UC_RegMal .up.> UC_Executar : <<extend>>
+  UC_Executar .right.> UC_Login : <<include>>
+
+  UC_Tratar .up.> UC_Login : <<include>>
+  UC_Tratar .down.> UC_Notificar : <<include>>
+
+  UC_Email -up-|> UC_Notificar
+  UC_SMS -up-|> UC_Notificar
+
+  UC_Reagendar .up.> UC_Tratar : <<extend>>
+  UC_Devolver .up.> UC_Tratar : <<extend>>
+  UC_Confirmar .up.> UC_Reagendar : <<extend>>
+}
+
+' ===== Associações dos atores =====
+M -- UC_Executar
+C -- UC_Acompanhar
+C -- UC_Confirmar
+UC_Tratar -right- O
+UC_Consultar -right- G
+
+' ===== Generalização entre atores (Gestor herda de Operador) =====
+G -up-|> O
+
+@enduml

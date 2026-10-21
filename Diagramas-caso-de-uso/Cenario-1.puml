@@ -1,0 +1,70 @@
+
+@startuml
+top to bottom direction
+skinparam nodesep 35
+skinparam ranksep 45
+skinparam shadowing false
+
+actor Cliente
+actor Motorista
+actor Gestor
+actor Operador
+
+' Posicionamento dos atores
+Cliente -[hidden]down- Motorista
+Gestor -[hidden]down- Operador
+
+rectangle "Cenario 1 - coleta, consolidação, rotas e alocação" {
+
+  usecase "Solicitar Coleta Imediata" as UC_Imediata
+  usecase "Solicitar Coleta Agendada" as UC_Agendada
+  usecase "Solicitar Coleta" as UC_Solicitar
+  usecase "Calcular frete" as UC_Frete
+  usecase "Realizar Login" as UC_Login
+  usecase "Registrar Coleta" as UC_Registrar
+
+  usecase "Programar Coleta" as UC_Programar
+  usecase "Aprovar Exceção de Carga" as UC_Aprovar
+  usecase "Consolidar Cargas" as UC_Consolidar
+  usecase "Verificar Compatibilidade de Cargas" as UC_Verificar
+
+  usecase "Replanejar Rota" as UC_Replanejar
+  usecase "Planejar Rotas" as UC_Planejar
+  usecase "Alocar Veiculos" as UC_Alocar
+  usecase "Validar Capacidade do Veiculo" as UC_Validar
+
+  ' Alinhamento interno
+  UC_Imediata -[hidden]right- UC_Agendada
+  UC_Verificar -[hidden]down- UC_Replanejar
+}
+
+' ===== Atores à esquerda =====
+Cliente -right- UC_Solicitar
+Motorista -right- UC_Registrar
+
+' ===== Atores à direita =====
+UC_Programar -left- Gestor
+UC_Programar -right- Operador
+UC_Consolidar -right- Operador
+UC_Planejar -right- Operador
+
+' ===== Solicitação de coleta =====
+UC_Imediata -down-|> UC_Solicitar
+UC_Agendada -down-|> UC_Solicitar
+UC_Solicitar .right.> UC_Frete : <<include>>
+UC_Solicitar .down.> UC_Login : <<include>>
+UC_Registrar .up.> UC_Login : <<include>>
+
+' ===== Programação e consolidação =====
+Gestor -down-|> Operador
+UC_Aprovar .down.> UC_Consolidar : <<extend>>
+UC_Consolidar .left.> UC_Login : <<include>>
+UC_Consolidar .down.> UC_Verificar : <<include>>
+
+' ===== Rotas e alocação =====
+UC_Replanejar .down.> UC_Planejar : <<extend>>
+UC_Planejar .down.> UC_Alocar : <<include>>
+UC_Alocar .down.> UC_Validar : <<include>>
+UC_Planejar .up.> UC_Login : <<include>>
+
+@enduml
